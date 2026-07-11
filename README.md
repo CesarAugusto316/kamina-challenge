@@ -1,130 +1,205 @@
 # 🧠 Kamina Technical Test
 
 ## 📖 Description
-A lightweight REST API built with FastAPI, PostgreSQL, and Docker to manage AI assistant instructions. It implements JWT-based authentication, CRUD operations, and follows modern backend architecture patterns.
+
+A modular REST API built with FastAPI, PostgreSQL, and Docker to manage a library domain (users, authors, books, and loans). The project follows a domain-oriented architecture, implements JWT-based authentication, and applies clean separation of concerns for scalability and maintainability.
+
+---
 
 ## 📋 Prerequisites
+
 Before running the project, ensure you have the following installed:
-- [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
-- *(Optional)* `uv` or `pip` if you prefer running locally without Docker.
+
+- Docker & Docker Compose
+- _(Optional)_ `uv` or `pip` if running locally without Docker
+
+---
 
 ## 🚀 Quick Start
 
 ### 1. Clone & Configure Environment
+
 ```bash
 cp .env.example .env
 ```
-The `.env` file contains all necessary configuration (database URL, JWT secret, environment mode). Default values work out-of-the-box for local development.
+
+The `.env` file contains all required configuration (database, JWT, environment). Default values work for local development.
+
+---
 
 ### 2. Start the Application
-Run the following command to spin up the FastAPI app and PostgreSQL database:
+
 ```bash
-# start docker container
+# Start containers
 docker compose up -d
 
-# kill docker container
+# Stop containers
 docker compose down
 
-# Rebuild if some file changes
+# Rebuild containers
 docker compose build --no-cache
 ```
 
-✅ API: `http://localhost:8000`
-📖 Interactive Docs: `http://localhost:8000/docs`
+✅ API: http://localhost:8000
+📖 Docs: http://localhost:8000/docs
 
 ---
 
 ## 🔐 Authentication & Usage Guide
 
-This API uses JWT (JSON Web Tokens) to protect routes. Follow these simple steps to authenticate and use the protected endpoints:
+This API uses JWT for authentication.
 
-### 🔑 Step 1: Obtain a JWT Token
-Send a `POST` request to `/auth/token` with the test credentials:
+### 🔑 Get Token
+
 ```bash
 curl -X POST http://localhost:8000/auth/token \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "mindy2026"}'
 ```
-**You will receive:**
+
+Response:
+
 ```json
-{ "access_token": "eyJhbGciOiJIUzI1NiIs...", "token_type": "bearer" }
+{
+  "access_token": "TOKEN",
+  "token_type": "bearer"
+}
 ```
-Copy the value inside `"access_token"`.
-
-### 🛡️ Step 2: Use the Token on Protected Routes
-Add the token to the `Authorization` header using the `Bearer` scheme.
-
-**📥 List Instructions**
-```bash
-curl -X GET http://localhost:8000/instructions \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
-```
-
-**📝 Create an Instruction**
-```bash
-curl -X POST http://localhost:8000/instructions \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
-  -d '{"title": "Be helpful", "content": "Always answer clearly and concisely."}'
-```
-
-**🗑️ Delete an Instruction**
-```bash
-curl -X DELETE http://localhost:8000/instructions/550e8400-e29b-41d4-a716-446655440000 \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE"
-```
-
-### 💡 Easier Alternative: Swagger UI
-1. Open `http://localhost:8000/docs` in your browser.
-2. Click the **"Authorize"** button (top-right 🔓 icon).
-3. Paste your token in this format: `Bearer <YOUR_TOKEN>`
-4. Click **Authorize** → Close.
-5. All protected endpoints will now automatically include your token when testing.
 
 ---
 
-## 🌐 API Endpoints
+### 🛡️ Use Token
+
+```bash
+-H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 🌐 API Overview
+
+### Core Endpoints
+
+| Method | Endpoint    | Auth | Description  |
+| ------ | ----------- | ---- | ------------ |
+| GET    | /health     | ❌   | Health check |
+| POST   | /auth/token | ❌   | Login        |
+
+---
+
+### Users
 
 | Method | Endpoint | Auth | Description |
-|:------:|:--------:|:----:|-------------|
-| `GET`  | `/health` | ❌ | Service health check |
-| `POST` | `/auth/token` | ❌ | Login & get JWT |
-| `GET`  | `/instructions` | ✅ | List all instructions |
-| `POST` | `/instructions` | ✅ | Create a new instruction |
-| `DELETE`| `/instructions/{id}` | ✅ | Delete instruction by UUID |
+| ------ | -------- | ---- | ----------- |
+| GET    | /users   | ✅   | List users  |
+| POST   | /users   | ✅   | Create user |
+
+---
+
+### Authors
+
+| Method | Endpoint | Auth | Description   |
+| ------ | -------- | ---- | ------------- |
+| GET    | /authors | ✅   | List authors  |
+| POST   | /authors | ✅   | Create author |
+
+---
+
+### Books
+
+| Method | Endpoint | Auth | Description |
+| ------ | -------- | ---- | ----------- |
+| GET    | /books   | ✅   | List books  |
+| POST   | /books   | ✅   | Create book |
+
+---
+
+### Loans
+
+| Method | Endpoint      | Auth | Description   |
+| ------ | ------------- | ---- | ------------- |
+| GET    | /loans        | ✅   | List loans    |
+| POST   | /loans        | ✅   | Create loan   |
+| POST   | /loans/return | ✅   | Return a book |
+
+---
+
+## 🧱 Domain Model Overview
+
+- **User** → system users (authentication & ownership)
+- **Author** → book authors
+- **Book** → individual book units (1 record = 1 copy)
+- **Loan** → borrowing lifecycle (loan_date, due_date, return_date)
 
 ---
 
 ## 📁 Project Structure
+
 ```
-    mindy-task/
-    ├── README.md
-    ├── app/
-    │   ├── __init__.py
-    │   ├── core/          # DB config, dependencies, env vars
-    │   ├── main.py        # FastAPI entry point
-    │   ├── models/        # SQLAlchemy models
-    │   ├── routes/        # FastAPI routers (auth, health, instructions)
-    │   ├── schemas/       # Pydantic validation models
-    │   └── services/      # Auth logic & business helpers
-    ├── docker-compose.yml
-    ├── dockerfile
-    ├── pyproject.toml
-    ├── test/              # Pytest suite
-    └── uv.lock
+kamina-challenge/
+├── README.md
+├── ARCHITECTURE_EVOLUTION.md
+├── app/
+│   ├── main.py                # FastAPI entrypoint
+│   ├── core/                 # Shared infrastructure
+│   │   ├── db.py             # DB connection
+│   │   ├── deps.py           # Dependencies (auth, db session)
+│   │   └── vars.py           # Environment/config
+│   │
+│   └── modules/              # Domain-based modular architecture
+│       ├── users/
+│       │   ├── model.py
+│       │   ├── schema.py
+│       │   ├── service.py
+│       │   └── router.py
+│       │
+│       ├── authors/
+│       ├── books/
+│       ├── loans/
+│       │   ├── model.py      # Loan entity (loan_date, return_date, etc.)
+│       │   ├── schema.py
+│       │   ├── service.py    # Business rules (availability, return logic)
+│       │   └── router.py
+│
+├── docker-compose.yml
+├── dockerfile
+├── pyproject.toml
+├── test/
+│   └── intructions_test.py
+└── uv.lock
 ```
-*(Note: `__pycache__/` and `.venv/` directories are auto-generated and ignored by Git.)*
+
+---
+
+## 🧠 Architectural Notes
+
+- **Modular monolith**: each domain encapsulates model, schema, service, and router
+- **Separation of concerns**:
+
+  - Router → HTTP layer
+  - Service → business logic
+  - Model → persistence
+  - Schema → validation
+
+- **Scalable structure**: easy to extract modules into microservices if needed
+- **Domain-driven approach**: reflects real-world entities (books, loans, users)
 
 ---
 
 ## 🧪 Running Tests
-Tests are located in the `test/` directory. Run them inside the container:
+
 ```bash
 docker compose exec api uv run pytest test/ -v
 ```
 
-## 📝 Notes for Evaluators
-- Hardcoded credentials for testing: `username: admin` / `password: mindy2026`
-- All timestamps and JWT expirations use UTC.
-- Database tables are auto-created on startup via SQLAlchemy.
-- No production secrets are committed. Use `.env.example` as a template.
+---
+
+## 🚀 Key Design Decisions
+
+- Loans modeled explicitly to handle lifecycle (loan, return, overdue)
+- One book = one unit (simplifies inventory constraints)
+- JWT-based authentication
+- Modular structure for scalability and clarity
+- Ready for extension (RBAC, multi-tenant, analytics)
+
+---
