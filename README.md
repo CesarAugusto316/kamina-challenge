@@ -80,10 +80,9 @@ Response:
 
 ### Core Endpoints
 
-| Method | Endpoint    | Auth | Description  |
-| ------ | ----------- | ---- | ------------ |
-| GET    | /health     | ❌   | Health check |
-| POST   | /auth/token | ❌   | Login        |
+| Method | Endpoint     | Auth | Description |
+| ------ | ------------ | ---- | ----------- |
+| POST   | /users/login | ❌   | Login       |
 
 ---
 
@@ -140,10 +139,10 @@ kamina-challenge/
 ├── README.md
 ├── ARCHITECTURE_EVOLUTION.md
 ├── app/
-│   ├── main.py                # FastAPI entrypoint
+│   ├── main.py               # FastAPI entrypoint
 │   ├── core/                 # Shared infrastructure
-│   │   ├── db_config.py             # DB connection
-│   │   └── vars.py           # Environment/config
+│   │   ├── db_config.py      # DB configuration
+│   │   └── vars.py           # Environment variables
 │   │
 │   └── modules/              # Domain-based modular architecture
 │       ├── users/
