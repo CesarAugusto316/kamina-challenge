@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 class LoanCreate(BaseModel):
     book_id: int
     user_id: int
-    expected_return_date: datetime
+    days: int | None = None
 
 
 class LoanUpdate(BaseModel):

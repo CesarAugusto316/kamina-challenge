@@ -35,7 +35,8 @@ class LoanService:
             raise HTTPException(status_code=400, detail="Book is already on loan")
 
         # Calcular fecha esperada de retorno (por defecto 14 días)
-        expected_return_date = datetime.now(UTC) + timedelta(days=14)
+        days = loan_data.days if loan_data.days is not None else 14
+        expected_return_date = datetime.now(UTC) + timedelta(days=days)
 
         loan = Loan(**loan_data.model_dump(), expected_return_date=expected_return_date)
         self.db.add(loan)

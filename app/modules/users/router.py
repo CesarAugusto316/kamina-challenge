@@ -25,7 +25,7 @@ def create_user(user_data: UserCreate, db: InjectedDB):
     "/login",
     response_model=JWTResponse,
     status_code=status.HTTP_200_OK,
-    summary="Create a new user",
+    summary="Authenticate a user",
 )
 def login_user(user_data: JWTRequest, db: InjectedDB):
     service = UserService(db)

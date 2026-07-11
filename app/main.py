@@ -9,7 +9,12 @@ from .modules.loans.router import router as loan_router
 from .modules.users.router import router as user_router
 
 # Importar modelos para que Base los registre
-app = FastAPI(title="Kamina Technical Challenge", lifespan=init_db)
+app = FastAPI(
+    title="Kamina Library System",
+    lifespan=init_db,
+    summary="For managing authors, books, and loans",
+    description="Get JWT token then use it to access protected endpoints",
+)
 
 app.add_middleware(
     CORSMiddleware,
