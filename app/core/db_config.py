@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .vars import DATABASE_URL
 
@@ -20,7 +21,7 @@ class Base(DeclarativeBase):
 
 
 @asynccontextmanager
-async def create_db_and_tables(app: FastAPI):
+async def init_db(app: FastAPI):
     """
     This replaces @app.on_event("startup") because is deprecated
     """
@@ -30,3 +31,16 @@ async def create_db_and_tables(app: FastAPI):
     finally:
         # clean up items
         pass
+
+
+# Get database session
+def get_db_session():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# type for db dependency injection
+InjectedDB = Annotated[Session, Depends(get_db_session)]

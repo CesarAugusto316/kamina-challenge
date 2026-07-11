@@ -1,11 +1,14 @@
 # user.py
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ...core.db import Base
-from ..loans.model import Loan
+from ...core.db_config import Base
+
+if TYPE_CHECKING:
+    from ..loans.model import Loan
 
 
 class User(Base):
@@ -17,7 +20,7 @@ class User(Base):
         String(255), unique=True, nullable=False, index=True
     )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    loans: Mapped[list[Loan]] = relationship(Loan, back_populates="user")
+    loans: Mapped[list["Loan"]] = relationship("Loan", back_populates="user")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)

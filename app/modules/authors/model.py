@@ -1,10 +1,13 @@
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ...core.db import Base
-from ..books.model import Book
+from ...core.db_config import Base
+
+if TYPE_CHECKING:
+    from ..books.model import Book
 
 
 class Author(Base):
@@ -16,7 +19,7 @@ class Author(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    books: Mapped[list[Book]] = relationship(Book, back_populates="author")
+    books: Mapped[list["Book"]] = relationship("Book", back_populates="author")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

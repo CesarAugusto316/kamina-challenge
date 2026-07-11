@@ -142,8 +142,7 @@ kamina-challenge/
 ├── app/
 │   ├── main.py                # FastAPI entrypoint
 │   ├── core/                 # Shared infrastructure
-│   │   ├── db.py             # DB connection
-│   │   ├── deps.py           # Dependencies (auth, db session)
+│   │   ├── db_config.py             # DB connection
 │   │   └── vars.py           # Environment/config
 │   │
 │   └── modules/              # Domain-based modular architecture

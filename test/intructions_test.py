@@ -1,8 +1,10 @@
+import uuid
+
 import pytest
 from fastapi.testclient import TestClient
+
+from app.core.db_config import Base, engine
 from app.main import app
-from app.core.db import engine, Base
-import uuid
 
 client = TestClient(app)
 
