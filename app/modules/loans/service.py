@@ -38,7 +38,10 @@ class LoanService:
         days = loan_data.days if loan_data.days is not None else 14
         expected_return_date = datetime.now(UTC) + timedelta(days=days)
 
-        loan = Loan(**loan_data.model_dump(), expected_return_date=expected_return_date)
+        # FIX: Excluir 'days' del dump porque no es un campo del modelo SQLAlchemy
+        loan_data_dict = loan_data.model_dump(exclude={"days"})
+        loan = Loan(**loan_data_dict, expected_return_date=expected_return_date)
+
         self.db.add(loan)
         self.db.commit()
         self.db.refresh(loan)
@@ -107,7 +110,7 @@ class LoanService:
         self.db.refresh(loan)
         return loan
 
-    def delete_loan(self, loan_id: int) -> dict:
+    def delete_loan(self, loan_id: int):
         """Eliminar un préstamo"""
         loan = self.get_loan(loan_id)
 
@@ -119,4 +122,4 @@ class LoanService:
 
         self.db.delete(loan)
         self.db.commit()
-        return {"message": "Loan deleted successfully"}
+        return

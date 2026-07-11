@@ -120,4 +120,4 @@ def update_loan(loan_id: int, loan_data: LoanUpdate, db: InjectedDB):
 )
 def delete_loan(loan_id: int, db: InjectedDB):
     service = LoanService(db)
-    service.delete_loan(loan_id)
+    return service.delete_loan(loan_id)
