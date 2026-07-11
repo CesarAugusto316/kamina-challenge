@@ -1,12 +1,20 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from ...core.db_config import InjectedDB
+from ..users.service import UserService
 from .schema import AuthorCreate, AuthorResponse, AuthorUpdate
 from .service import AuthorService
 
-router = APIRouter(prefix="/authors", tags=["Authors"])
+router = APIRouter(
+    prefix="/authors",
+    tags=["Authors"],  # makes all routes private
+    dependencies=[Depends(UserService.check_valid_credentials)],
+)
 
 
+# -------------------------------------------
+# PRIVATE ROUTES
+# -------------------------------------------
 @router.post(
     "/",
     response_model=AuthorResponse,
@@ -21,6 +29,7 @@ def create_author(author_data: AuthorCreate, db: InjectedDB):
 @router.get(
     "/",
     response_model=list[AuthorResponse],
+    status_code=status.HTTP_200_OK,
     summary="List all authors",
 )
 def get_all_authors(
@@ -35,6 +44,7 @@ def get_all_authors(
 @router.get(
     "/{author_id}",
     response_model=AuthorResponse,
+    status_code=status.HTTP_200_OK,
     summary="Get an author by ID",
 )
 def get_author(author_id: int, db: InjectedDB):
@@ -45,6 +55,7 @@ def get_author(author_id: int, db: InjectedDB):
 @router.put(
     "/{author_id}",
     response_model=AuthorResponse,
+    status_code=status.HTTP_200_OK,
     summary="Update an author",
 )
 def update_author(author_id: int, author_data: AuthorUpdate, db: InjectedDB):

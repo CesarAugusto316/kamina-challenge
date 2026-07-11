@@ -1,12 +1,21 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from ...core.db_config import InjectedDB
+from ..users.service import UserService
 from .schema import BookCreate, BookResponse, BookUpdate
 from .service import BookService
 
-router = APIRouter(prefix="/books", tags=["Books"])
+router = APIRouter(
+    prefix="/books",
+    tags=["Books"],
+    # makes all routes private
+    dependencies=[Depends(UserService.check_valid_credentials)],
+)
 
 
+# -------------------------------------------
+# PRIVATE ROUTES
+# -------------------------------------------
 @router.post(
     "/",
     response_model=BookResponse,
@@ -22,6 +31,7 @@ def create_book(book_data: BookCreate, db: InjectedDB):
     "/",
     response_model=list[BookResponse],
     summary="List or search books",
+    status_code=status.HTTP_200_OK,
     description=(
         "List all books. Optionally filter by title, author name, or publication year. "
         "When any filter is provided, it behaves as a search endpoint."
@@ -55,6 +65,7 @@ def get_books(
 @router.get(
     "/{book_id}",
     response_model=BookResponse,
+    status_code=status.HTTP_200_OK,
     summary="Get a book by ID",
 )
 def get_book(book_id: int, db: InjectedDB):
@@ -65,6 +76,7 @@ def get_book(book_id: int, db: InjectedDB):
 @router.put(
     "/{book_id}",
     response_model=BookResponse,
+    status_code=status.HTTP_200_OK,
     summary="Update a book",
 )
 def update_book(book_id: int, book_data: BookUpdate, db: InjectedDB):

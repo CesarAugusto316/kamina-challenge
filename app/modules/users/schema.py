@@ -43,3 +43,21 @@ class UserDetailResponse(UserResponse):
     loans: list[LoanBrief] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# AUTHENTICATION
+class JWTRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class JWTResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class JWTPayload(BaseModel):
+    exp: datetime
+    sub: str
+
+    model_config = ConfigDict(from_attributes=True)

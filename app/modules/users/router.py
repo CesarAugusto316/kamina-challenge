@@ -1,15 +1,18 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from ...core.db_config import InjectedDB
-from .schema import UserCreate, UserResponse, UserUpdate
+from .schema import JWTRequest, JWTResponse, UserCreate, UserResponse, UserUpdate
 from .service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
+# -------------------------------------------
+# PUBLIC ROUTES
+# -------------------------------------------
 @router.post(
     "/",
-    response_model=UserResponse,
+    response_model=JWTResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new user",
 )
@@ -18,10 +21,26 @@ def create_user(user_data: UserCreate, db: InjectedDB):
     return service.create_user(user_data)
 
 
+@router.post(
+    "/login",
+    response_model=JWTResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Create a new user",
+)
+def login_user(user_data: JWTRequest, db: InjectedDB):
+    service = UserService(db)
+    return service.login_user(user_data)
+
+
+# -------------------------------------------
+# PRIVATE ROUTES
+# -------------------------------------------
 @router.get(
     "/",
     response_model=list[UserResponse],
     summary="List all users",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(UserService.check_valid_credentials)],
 )
 def get_all_users(
     db: InjectedDB,
@@ -36,6 +55,8 @@ def get_all_users(
     "/{user_id}",
     response_model=UserResponse,
     summary="Get a user by ID",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(UserService.check_valid_credentials)],
 )
 def get_user(user_id: int, db: InjectedDB):
     service = UserService(db)
@@ -46,6 +67,8 @@ def get_user(user_id: int, db: InjectedDB):
     "/{user_id}",
     response_model=UserResponse,
     summary="Update a user",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(UserService.check_valid_credentials)],
 )
 def update_user(user_id: int, user_data: UserUpdate, db: InjectedDB):
     service = UserService(db)
@@ -56,6 +79,7 @@ def update_user(user_id: int, user_data: UserUpdate, db: InjectedDB):
     "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a user",
+    dependencies=[Depends(UserService.check_valid_credentials)],
 )
 def delete_user(user_id: int, db: InjectedDB):
     service = UserService(db)

@@ -1,12 +1,21 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from ...core.db_config import InjectedDB
+from ..users.service import UserService
 from .schema import LoanCreate, LoanResponse, LoanUpdate
 from .service import LoanService
 
-router = APIRouter(prefix="/loans", tags=["Loans"])
+router = APIRouter(
+    prefix="/loans",
+    tags=["Loans"],
+    # makes all routes private
+    dependencies=[Depends(UserService.check_valid_credentials)],
+)
 
 
+# -------------------------------------------
+# PRIVATE ROUTES
+# -------------------------------------------
 @router.post(
     "/",
     response_model=LoanResponse,
@@ -22,6 +31,7 @@ def create_loan(loan_data: LoanCreate, db: InjectedDB):
     "/",
     response_model=list[LoanResponse],
     summary="List all loans",
+    status_code=status.HTTP_200_OK,
 )
 def get_all_loans(
     db: InjectedDB,
@@ -36,6 +46,7 @@ def get_all_loans(
     "/active",
     response_model=list[LoanResponse],
     summary="List all active loans",
+    status_code=status.HTTP_200_OK,
 )
 def get_active_loans(
     db: InjectedDB,
@@ -50,6 +61,7 @@ def get_active_loans(
     "/user/{user_id}",
     response_model=list[LoanResponse],
     summary="Get all loans for a specific user",
+    status_code=status.HTTP_200_OK,
 )
 def get_loans_by_user(user_id: int, db: InjectedDB):
     service = LoanService(db)
@@ -60,6 +72,7 @@ def get_loans_by_user(user_id: int, db: InjectedDB):
     "/book/{book_id}",
     response_model=list[LoanResponse],
     summary="Get all loans for a specific book",
+    status_code=status.HTTP_200_OK,
 )
 def get_loans_by_book(book_id: int, db: InjectedDB):
     service = LoanService(db)
@@ -70,17 +83,19 @@ def get_loans_by_book(book_id: int, db: InjectedDB):
     "/{loan_id}",
     response_model=LoanResponse,
     summary="Get a loan by ID",
+    status_code=status.HTTP_200_OK,
 )
 def get_loan(loan_id: int, db: InjectedDB):
     service = LoanService(db)
     return service.get_loan(loan_id)
 
 
-@router.post(
+@router.put(
     "/{loan_id}/return",
     response_model=LoanResponse,
     summary="Return a book",
     description="Mark a loan as returned and set the actual return date.",
+    status_code=status.HTTP_200_OK,
 )
 def return_book(loan_id: int, db: InjectedDB):
     service = LoanService(db)
@@ -91,6 +106,7 @@ def return_book(loan_id: int, db: InjectedDB):
     "/{loan_id}",
     response_model=LoanResponse,
     summary="Update a loan",
+    status_code=status.HTTP_200_OK,
 )
 def update_loan(loan_id: int, loan_data: LoanUpdate, db: InjectedDB):
     service = LoanService(db)

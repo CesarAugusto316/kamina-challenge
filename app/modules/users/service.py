@@ -1,15 +1,62 @@
-from fastapi import HTTPException
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
+
+import jwt
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jwt.exceptions import InvalidTokenError
+from pwdlib import PasswordHash
+from pwdlib.hashers.argon2 import Argon2Hasher
 from sqlalchemy.orm import Session
 
+from app.core.db_config import InjectedDB
+
+from ...core.vars import JWT_ALGORITHM, JWT_SECRET
 from .model import User
-from .schema import UserCreate, UserUpdate
+from .schema import JWTPayload, JWTRequest, JWTResponse, UserCreate, UserUpdate
+
+InjectedAuthCredentials = Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())]
+password_hasher = PasswordHash((Argon2Hasher(),))
 
 
 class UserService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_user(self, user_data: UserCreate) -> User:
+    @staticmethod
+    def check_valid_credentials(
+        credentials: InjectedAuthCredentials, db: InjectedDB
+    ) -> User:
+        """
+        Check if the provided credentials are valid and return the corresponding user.
+        """
+        try:
+            raw_payload = jwt.decode(
+                credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM]
+            )
+            if raw_payload is None:
+                raise HTTPException(status_code=401, detail="Payload is empty")
+
+            jwt_payload = JWTPayload(**raw_payload)
+            service = UserService(db)
+            return service.get_user(int(jwt_payload.sub))  # jwt_payload.sub=user.id
+
+        except (jwt.ExpiredSignatureError, InvalidTokenError):
+            raise HTTPException(status_code=401, detail="JWT Expired or Invalid")
+
+    # private method
+    def _encode_jwt(
+        self, subject: str | int, expires_delta: timedelta = timedelta(hours=3)
+    ) -> str:
+        """
+        Create a JWT token for the given subject and expiration delta.
+        """
+        expire = datetime.now(timezone.utc) + expires_delta
+        to_encode = {"exp": expire, "sub": str(subject)}
+        encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        return encoded_jwt
+
+    def create_user(self, user_data: UserCreate) -> JWTResponse:
         """Crear un nuevo usuario"""
         # Verificar si el email ya existe
         existing_user = (
@@ -18,11 +65,28 @@ class UserService:
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")
 
-        user = User(**user_data.model_dump())
+        hashed_password = password_hasher.hash(user_data.password)
+        user = User(
+            name=user_data.name, email=user_data.email, password_hash=hashed_password
+        )
         self.db.add(user)
         self.db.commit()
         self.db.refresh(user)
-        return user
+        jwt = self._encode_jwt(user.id)
+        return JWTResponse(access_token=jwt)
+
+    def login_user(self, credentials: JWTRequest) -> JWTResponse:
+        user = self.db.query(User).filter(User.email == credentials.email).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        is_valid = password_hasher.verify(credentials.password, user.password_hash)
+
+        if not is_valid:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        jwt = self._encode_jwt(user.id)
+        return JWTResponse(access_token=jwt)
 
     def get_user(self, user_id: int) -> User:
         """Obtener un usuario por ID"""

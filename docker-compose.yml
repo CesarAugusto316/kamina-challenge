@@ -14,9 +14,29 @@ services:
       - pgdata:/var/lib/postgresql # for version 18+
       # - pg/var/lib/postgresql/data # for version under 18: 17, 16, 15 etc...
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 5s
       retries: 5
+
+  test_db:
+    image: postgres:18-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    restart: unless-stopped
+    ports:
+      - "5431:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql # for version 18+
+      # - pg/var/lib/postgresql/data # for version under 18: 17, 16, 15 etc...
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      retries: 5
+
   api:
     build: .
     ports:
@@ -24,7 +44,8 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME} # ${DATABASE_URL}
+      DATABASE_URL: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      TEST_DATABASE_URL: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@test_db:5431/${DB_NAME}
       JWT_SECRET: ${JWT_SECRET}
       APP_ENV: ${APP_ENV}
       ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
