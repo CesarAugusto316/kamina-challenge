@@ -207,7 +207,8 @@ kamina-challenge/
 - One book = one unit (simplifies inventory constraints)
 - JWT-based authentication
 - Modular structure for scalability and clarity
-- Integration tests using a real database (no mocks)
+- Isolated integration test environment with Docker (no mocks)
+- Seeder for initial data
 
 ### Additional Considerations
 
