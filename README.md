@@ -41,16 +41,17 @@ Stop app containers
 docker compose --profile app down
 ```
 
+✅ API: http://localhost:8000
+
+📖 Docs: http://localhost:8000/docs
+
 ### 3. Running Integration Tests
 
-Start test containers, run integration tests, then stop test containers
+Start test containers, run integration tests, then stop test containers (one command)
 
 ```bash
 docker compose --profile test up --abort-on-container-exit
 ```
-
-✅ API: http://localhost:8000
-📖 Docs: http://localhost:8000/docs
 
 ---
 
