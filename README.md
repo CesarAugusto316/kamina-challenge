@@ -2,7 +2,7 @@
 
 ## 📖 Description
 
-A modular REST API built with FastAPI, PostgreSQL, SqlAlchemy and Docker to manage a library domain (users, authors, books, and loans). The project follows a domain-oriented architecture, implements JWT-based authentication, and applies clean separation of concerns for scalability and maintainability.
+A modular REST API for digital library management built with FastAPI, PostgreSQL, SQLAlchemy, and Docker. The system implements JWT-based authentication, domain-driven architecture across four core modules (Users, Authors, Books, Loans), and includes database seeders that pre-populate development environments with sample authors and books. Docker profiles provide isolated environments for both development and integration testing, ensuring clean separation between application and test contexts.
 
 ---
 
@@ -208,7 +208,7 @@ kamina-challenge/
 - JWT-based authentication
 - Modular structure for scalability and clarity
 - Isolated integration test environment with Docker (no mocks)
-- Seeder for initial data
+- Seeder for initial data (authors & books)
 
 ### Additional Considerations
 
