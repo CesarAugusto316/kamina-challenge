@@ -1,8 +1,5 @@
-import jwt
 import pytest
 from fastapi import status
-
-from app.core.vars import JWT_ALGORITHM, JWT_SECRET
 
 # ============================================================
 # FIXTURES REUTILIZABLES
@@ -21,16 +18,15 @@ def user_payload():
 
 @pytest.fixture()
 def created_user(client, user_payload):
-    """Crea un usuario y lo retorna con su ID extraído del JWT"""
+    """Crea un usuario y lo retorna con su ID extraído de la respuesta"""
     response = client.post("/users/", json=user_payload)
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
 
-    # El endpoint retorna solo el JWT. Decodificamos para extraer el ID (sub)
-    token = data["access_token"]
-    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    user_id = int(payload["sub"])
+    # El endpoint ahora retorna UserResponse, que incluye el ID directamente
+    user_id = data["id"]
 
+    # Retornamos los datos del usuario
     return {**data, "id": user_id}
 
 
@@ -106,7 +102,6 @@ class TestGetAuthors:
     def test_get_all_authors(self, client, auth_headers, author_payload):
         # Crear un autor primero para asegurar que haya al menos uno
         client.post("/authors/", json=author_payload, headers=auth_headers)
-
         response = client.get("/authors/", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -119,7 +114,6 @@ class TestGetAuthors:
             "/authors/", json=author_payload, headers=auth_headers
         )
         author_id = create_response.json()["id"]
-
         response = client.get(f"/authors/{author_id}", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["id"] == author_id

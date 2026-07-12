@@ -1,10 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
-import jwt
 import pytest
 from fastapi import status
-
-from app.core.vars import JWT_ALGORITHM, JWT_SECRET
 
 # ============================================================
 # FIXTURES REUTILIZABLES
@@ -23,13 +20,15 @@ def user_payload():
 
 @pytest.fixture()
 def created_user(client, user_payload):
-    """Crea un usuario y lo retorna con su ID extraído del JWT"""
+    """Crea un usuario y lo retorna con su ID extraído de la respuesta"""
     response = client.post("/users/", json=user_payload)
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
-    token = data["access_token"]
-    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    user_id = int(payload["sub"])
+
+    # El endpoint ahora retorna UserResponse, que incluye el ID directamente
+    user_id = data["id"]
+
+    # Retornamos los datos del usuario
     return {**data, "id": user_id}
 
 
@@ -83,15 +82,13 @@ def created_book(client, auth_headers, book_payload):
 
 
 @pytest.fixture()
-def loan_payload(created_book, created_user):
+def loan_payload(created_book):
     """Payload válido para crear loan
-
-    Nota: LoanCreate solo acepta book_id, user_id y days (opcional).
-    El campo expected_return_date es calculado internamente por el servicio.
+    Nota: LoanCreate solo acepta book_id y days (opcional).
+    El user_id se obtiene del usuario autenticado.
     """
     return {
         "book_id": created_book["id"],
-        "user_id": created_user["id"],
         "days": 14,
     }
 
@@ -136,12 +133,14 @@ class TestLoanAuthentication:
 
 
 class TestCreateLoan:
-    def test_create_loan_success(self, client, auth_headers, loan_payload):
+    def test_create_loan_success(
+        self, client, auth_headers, loan_payload, created_user
+    ):
         response = client.post("/loans/", json=loan_payload, headers=auth_headers)
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
         assert data["book_id"] == loan_payload["book_id"]
-        assert data["user_id"] == loan_payload["user_id"]
+        assert data["user_id"] == created_user["id"]
         assert data["status"] == "active"
         assert "id" in data
         assert "loan_date" in data
@@ -152,22 +151,7 @@ class TestCreateLoan:
         """No se puede crear un loan con un book_id inexistente"""
         payload = {
             "book_id": 99999,
-            "user_id": created_user["id"],
             "days": 14,
-        }
-        response = client.post("/loans/", json=payload, headers=auth_headers)
-        assert response.status_code in (
-            status.HTTP_404_NOT_FOUND,
-            status.HTTP_422_UNPROCESSABLE_CONTENT,
-            status.HTTP_400_BAD_REQUEST,
-        )
-
-    def test_create_loan_invalid_user(self, client, auth_headers, created_book):
-        """No se puede crear un loan con un user_id inexistente"""
-        payload = {
-            "book_id": created_book["id"],
-            "user_id": 99999,
-            "days": 14,  # FIX: usar 'days' en lugar de 'expected_return_date'
         }
         response = client.post("/loans/", json=payload, headers=auth_headers)
         assert response.status_code in (
@@ -178,7 +162,7 @@ class TestCreateLoan:
 
     def test_create_loan_missing_required_fields(self, client, auth_headers):
         """Faltan campos obligatorios"""
-        payload = {"book_id": 1}
+        payload = {}
         response = client.post("/loans/", json=payload, headers=auth_headers)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
@@ -263,23 +247,21 @@ class TestReturnBook:
 class TestUpdateLoan:
     def test_update_loan_success(self, client, auth_headers, created_loan):
         loan_id = created_loan["id"]
-        new_expected_date = (
-            datetime.now(timezone.utc) + timedelta(days=30)
-        ).isoformat()
+        # LoanUpdate solo acepta 'days' ahora
         response = client.put(
             f"/loans/{loan_id}",
-            json={"expected_return_date": new_expected_date},
+            json={"days": 30},
             headers=auth_headers,
         )
         assert response.status_code == status.HTTP_200_OK
-        # Verificar que la fecha se actualizó
+        # Verificar que el loan se actualizó
         updated_loan = response.json()
         assert "expected_return_date" in updated_loan
 
     def test_update_loan_not_found(self, client, auth_headers):
         response = client.put(
             "/loans/99999",
-            json={"expected_return_date": datetime.now(timezone.utc).isoformat()},
+            json={"days": 30},
             headers=auth_headers,
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND

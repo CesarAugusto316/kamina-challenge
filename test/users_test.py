@@ -1,8 +1,5 @@
-import jwt
 import pytest
 from fastapi import status
-
-from app.core.vars import JWT_ALGORITHM, JWT_SECRET
 
 # ============================================================
 # FIXTURES REUTILIZABLES
@@ -21,17 +18,15 @@ def user_payload():
 
 @pytest.fixture()
 def created_user(client, user_payload):
-    """Crea un usuario y lo retorna con su ID extraído del JWT"""
+    """Crea un usuario y lo retorna con su ID extraído de la respuesta"""
     response = client.post("/users/", json=user_payload)
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
 
-    # El endpoint retorna solo el JWT. Decodificamos para extraer el ID (sub)
-    token = data["access_token"]
-    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    user_id = int(payload["sub"])
+    # El endpoint ahora retorna UserResponse, que incluye el ID directamente
+    user_id = data["id"]
 
-    # Retornamos los datos del token más el ID extraído
+    # Retornamos los datos del usuario
     return {**data, "id": user_id}
 
 
@@ -63,9 +58,11 @@ class TestCreateUser:
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
 
-        # Ajustado: El endpoint retorna JWTResponse, no los datos del usuario
-        assert "access_token" in data
-        assert data["token_type"].lower() == "bearer"
+        # Ajustado: El endpoint ahora retorna UserResponse, no un JWT
+        assert "id" in data
+        assert data["name"] == user_payload["name"]
+        assert data["email"] == user_payload["email"]
+        assert "created_at" in data
 
     def test_create_user_duplicate_email(self, client, user_payload):
         # Crear primer usuario
@@ -168,7 +165,6 @@ class TestUpdateUser:
             "/users/",
             json={"name": "Other", "email": "other@example.com", "password": "123"},
         ).json()
-
         # Intentar actualizar el primero con el email del segundo
         response = client.put(
             f"/users/{created_user['id']}",

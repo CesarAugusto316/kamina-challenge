@@ -1,8 +1,5 @@
-import jwt
 import pytest
 from fastapi import status
-
-from app.core.vars import JWT_ALGORITHM, JWT_SECRET
 
 # ============================================================
 # FIXTURES REUTILIZABLES
@@ -21,15 +18,15 @@ def user_payload():
 
 @pytest.fixture()
 def created_user(client, user_payload):
-    """Crea un usuario y lo retorna con su ID extraído del JWT"""
+    """Crea un usuario y lo retorna con su ID extraído de la respuesta"""
     response = client.post("/users/", json=user_payload)
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
 
-    token = data["access_token"]
-    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    user_id = int(payload["sub"])
+    # El endpoint ahora retorna UserResponse, que incluye el ID directamente
+    user_id = data["id"]
 
+    # Retornamos los datos del usuario
     return {**data, "id": user_id}
 
 
@@ -140,7 +137,6 @@ class TestGetBooks:
     def test_get_all_books(self, client, auth_headers, book_payload):
         # Crear un libro primero
         client.post("/books/", json=book_payload, headers=auth_headers)
-
         response = client.get("/books/", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -149,13 +145,11 @@ class TestGetBooks:
 
     def test_get_books_with_pagination(self, client, auth_headers, book_payload):
         client.post("/books/", json=book_payload, headers=auth_headers)
-
         response = client.get("/books/?skip=0&limit=5", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
 
     def test_search_books_by_title(self, client, auth_headers, book_payload):
         client.post("/books/", json=book_payload, headers=auth_headers)
-
         response = client.get("/books/?title=Cien", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -164,7 +158,6 @@ class TestGetBooks:
 
     def test_search_books_by_author_name(self, client, auth_headers, book_payload):
         client.post("/books/", json=book_payload, headers=auth_headers)
-
         response = client.get("/books/?author_name=García", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -172,7 +165,6 @@ class TestGetBooks:
 
     def test_search_books_by_year(self, client, auth_headers, book_payload):
         client.post("/books/", json=book_payload, headers=auth_headers)
-
         response = client.get("/books/?year=1967", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -181,7 +173,6 @@ class TestGetBooks:
 
     def test_search_books_no_results(self, client, auth_headers, book_payload):
         client.post("/books/", json=book_payload, headers=auth_headers)
-
         response = client.get("/books/?title=LibroInexistenteXYZ", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == []
@@ -191,7 +182,6 @@ class TestGetBooks:
             "/books/", json=book_payload, headers=auth_headers
         )
         book_id = create_response.json()["id"]
-
         response = client.get(f"/books/{book_id}", headers=auth_headers)
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["id"] == book_id
