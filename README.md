@@ -155,7 +155,6 @@ Response:
 ```
 kamina-challenge/
 ├── README.md
-├── ARCHITECTURE_EVOLUTION.md
 ├── app/
 │   ├── main.py               # FastAPI entrypoint
 │   ├── core/                 # Shared infrastructure
@@ -181,7 +180,7 @@ kamina-challenge/
 ├── dockerfile
 ├── pyproject.toml
 ├── test/
-│   └── intructions_test.py
+│   └── users_test.py
 └── uv.lock
 ```
 
@@ -219,16 +218,16 @@ kamina-challenge/
   - **User** → allowed to browse and borrow books
     This separation is important to enforce proper access control and prevent unauthorized modifications to core domain entities.
 
-- **Integration testing over mocking**
-  Instead of mocking services or database interactions, tests are executed against a real PostgreSQL instance. This approach aligns with modern CI/CD practices, where reliability and realistic system behavior are prioritized over isolated unit assumptions.
-
 - **Isolated test environment with Docker**
   The testing setup uses a dedicated Docker profile with an independent database and test runner container. Each test run operates on an isolated environment, ensuring reproducibility and avoiding side effects between executions.
+
+- **Integration testing over mocking**
+  Instead of mocking services or database interactions, tests are executed against a real PostgreSQL instance. This approach aligns with modern CI/CD practices, where reliability and realistic system behavior are prioritized over isolated unit assumptions.
 
 - **Ephemeral infrastructure mindset**
   Test containers are designed to be short-lived: they are created for the test run and destroyed afterward. This mirrors real-world CI pipelines and guarantees consistent, clean states for every execution.
 
 - **Separation between application and testing contexts**
-  The architecture clearly distinguishes between runtime services (`api`, `db`) and testing services (`test_runner`, `test_db`), allowing the system to scale testing strategies independently from application deployment.
+  The architecture clearly distinguishes between application services (`api`, `db`) and testing services (`test_runner`, `test_db`), allowing the system to scale testing strategies independently from application deployment.
 
 ---
