@@ -1,8 +1,8 @@
-# 🧠 Kamina Technical Test
+# 🧠 Kamina Technical Test: Library System
 
 ## 📖 Description
 
-A modular REST API built with FastAPI, PostgreSQL, and Docker to manage a library domain (users, authors, books, and loans). The project follows a domain-oriented architecture, implements JWT-based authentication, and applies clean separation of concerns for scalability and maintainability.
+A modular REST API built with FastAPI, PostgreSQL, SqlAlchemy and Docker to manage a library domain (users, authors, books, and loans). The project follows a domain-oriented architecture, implements JWT-based authentication, and applies clean separation of concerns for scalability and maintainability.
 
 ---
 
@@ -38,6 +38,12 @@ docker compose down
 
 # Rebuild containers
 docker compose build --no-cache
+```
+
+## 🧪 Running Integration Tests
+
+```bash
+docker compose --profile test up
 ```
 
 ✅ API: http://localhost:8000
@@ -184,10 +190,30 @@ kamina-challenge/
 
 ---
 
-## 🧪 Running Tests
+## Testing Approach
 
-```bash
-docker compose exec api uv run pytest test/ -v
+Instead of relying on mocks for APIs, services, or database interactions, tests are implemented as integration tests running against a real testing database. This approach better reflects real-world behavior and is widely adopted in modern backend development, particularly within continuous integration and deployment pipelines. In typical CI/CD workflows (e.g., GitHub Actions), these tests are executed automatically before critical steps such as merging into main branches or deploying to staging/production environments. By validating the system end-to-end, this strategy provides stronger guarantees that the API behaves as expected under realistic conditions, reducing the risk of inconsistencies that often arise from heavily mocked unit tests.
+
+```
+    Developer → Push / PR
+              ↓
+        CI Pipeline
+              ↓
+      Docker Compose
+      (API + Test DB)
+              ↓
+      Run Integration Tests
+        (real database)
+              ↓
+        ┌───────────────┐
+        │ Tests Pass?   │
+        └──────┬────────┘
+                │
+        Yes ───┴─── No
+          ↓            ↓
+    Merge / Deploy   Stop
+          ↓
+    Tear Down Containers
 ```
 
 ---
@@ -198,6 +224,6 @@ docker compose exec api uv run pytest test/ -v
 - One book = one unit (simplifies inventory constraints)
 - JWT-based authentication
 - Modular structure for scalability and clarity
-- Ready for extension (RBAC, multi-tenant, analytics)
+- Integration tests 100% covered
 
 ---

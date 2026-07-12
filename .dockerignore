@@ -1,0 +1,43 @@
+# Entornos virtuales (causa el error de symlinks rotos)
+.venv/
+venv/
+ENV/
+
+# Cache y archivos temporales
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Variables de entorno (no deben ir a la imagen)
+.env
+.env.local
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker (evitar copiar compose files)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Documentación y tests (opcional, si no los necesitas en producción)
+README.md
+
+# Logs
+*.log
+logs/
+
+# Base de datos local
+*.db
+*.sqlite3

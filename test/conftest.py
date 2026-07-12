@@ -4,11 +4,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.core.db_config import Base, get_db_session
-from app.core.vars import TEST_DATABASE_URL
+from app.core.vars import DATABASE_URL
 from app.main import app
 
 # Engine y session específicos para tests
-engine = create_engine(TEST_DATABASE_URL, echo=False)
+engine = create_engine(DATABASE_URL, echo=False)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
