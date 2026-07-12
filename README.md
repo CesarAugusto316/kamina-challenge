@@ -62,9 +62,9 @@ This API uses JWT for authentication.
 ### 🔑 Get Token
 
 ```bash
-curl -X POST http://localhost:8000/auth/token \
+curl -X POST http://localhost:8000/users/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "mindy2026"}'
+  -d '{"email": "user@example.com", "password": "mindy2026"}'
 ```
 
 Response:
@@ -93,6 +93,7 @@ Response:
 | Method | Endpoint     | Auth | Description |
 | ------ | ------------ | ---- | ----------- |
 | POST   | /users/login | ❌   | Login       |
+| POST   | /users       | ❌   | Create user |
 
 ---
 
@@ -101,7 +102,6 @@ Response:
 | Method | Endpoint | Auth | Description |
 | ------ | -------- | ---- | ----------- |
 | GET    | /users   | ✅   | List users  |
-| POST   | /users   | ✅   | Create user |
 
 ---
 
@@ -194,40 +194,33 @@ kamina-challenge/
 
 ---
 
-## Testing Approach
-
-Instead of relying on mocks for APIs, services, or database interactions, tests are implemented as integration tests running against a real testing database. This approach better reflects real-world behavior and is widely adopted in modern backend development, particularly within continuous integration and deployment pipelines. In typical CI/CD workflows (e.g., GitHub Actions), these tests are executed automatically before critical steps such as merging into main branches or deploying to staging/production environments. By validating the system end-to-end, this strategy provides stronger guarantees that the API behaves as expected under realistic conditions, reducing the risk of inconsistencies that often arise from heavily mocked unit tests.
-
-```
-    Developer → Push / PR
-              ↓
-        CI Pipeline
-              ↓
-      Docker Compose
-      (API + Test DB)
-              ↓
-      Run Integration Tests
-        (real database)
-              ↓
-        ┌───────────────┐
-        │ Tests Pass?   │
-        └──────┬────────┘
-                │
-        Yes ───┴─── No
-          ↓            ↓
-    Merge / Deploy   Stop
-          ↓
-    Tear Down Containers
-```
-
----
-
 ## 🚀 Key Design Decisions
 
 - Loans modeled explicitly to handle lifecycle (loan, return, overdue)
 - One book = one unit (simplifies inventory constraints)
 - JWT-based authentication
 - Modular structure for scalability and clarity
-- Integration tests 100% covered
+- Integration tests using a real database (no mocks)
+
+### Additional Considerations
+
+- **Role-based access (intentionally simplified)**
+  The system currently does not implement role-based authorization to keep the challenge focused and concise. However, in a production scenario, at least two roles would be required:
+
+  - **Admin** → responsible for managing authors and books
+  - **User** → allowed to browse and borrow books
+    This separation is important to enforce proper access control and prevent unauthorized modifications to core domain entities.
+
+- **Integration testing over mocking**
+  Instead of mocking services or database interactions, tests are executed against a real PostgreSQL instance. This approach aligns with modern CI/CD practices, where reliability and realistic system behavior are prioritized over isolated unit assumptions.
+
+- **Isolated test environment with Docker**
+  The testing setup uses a dedicated Docker profile with an independent database and test runner container. Each test run operates on an isolated environment, ensuring reproducibility and avoiding side effects between executions.
+
+- **Ephemeral infrastructure mindset**
+  Test containers are designed to be short-lived: they are created for the test run and destroyed afterward. This mirrors real-world CI pipelines and guarantees consistent, clean states for every execution.
+
+- **Separation between application and testing contexts**
+  The architecture clearly distinguishes between runtime services (`api`, `db`) and testing services (`test_runner`, `test_db`), allowing the system to scale testing strategies independently from application deployment.
 
 ---
