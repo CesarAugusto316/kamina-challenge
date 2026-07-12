@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict
@@ -10,9 +10,9 @@ if TYPE_CHECKING:
 
 class AuthorBase(BaseModel):
     name: str
-    birth_date: datetime | None = (
-        None  # manejar formatos como: d/m/y (esto es un formato absoluto, no debe ser UTC)
-    )
+    # Formato ISO 8601: "YYYY-MM-DD" (ej: "1903-06-25")
+    birth_date: date | None = None
+    birth_place: str | None = None
 
 
 class AuthorCreate(AuthorBase):
@@ -21,7 +21,6 @@ class AuthorCreate(AuthorBase):
 
 class AuthorUpdate(BaseModel):
     name: str | None = None
-    birth_date: datetime | None = None
 
 
 class AuthorResponse(AuthorBase):

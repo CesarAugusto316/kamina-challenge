@@ -1,7 +1,7 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import Date, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ...core.db_config import Base
@@ -16,9 +16,8 @@ class Author(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    birth_date: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    birth_place: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
     books: Mapped[list["Book"]] = relationship("Book", back_populates="author")
     created_at: Mapped[datetime] = mapped_column(

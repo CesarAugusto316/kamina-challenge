@@ -11,15 +11,11 @@ if TYPE_CHECKING:
 
 class LoanCreate(BaseModel):
     book_id: int
-    # user_id: int
     days: int | None = None
 
 
 class LoanUpdate(BaseModel):
     days: int | None = None
-    # book_id: int | None = None
-    # user_id: int | None = None
-    # expected_return_date: datetime | None = None
 
 
 class LoanResponse(BaseModel):

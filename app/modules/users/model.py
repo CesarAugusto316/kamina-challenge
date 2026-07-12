@@ -18,7 +18,10 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     email: Mapped[str] = mapped_column(
-        String(255), unique=True, nullable=False, index=True
+        String(255),
+        nullable=False,
+        index=True,
+        unique=True,
     )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     loans: Mapped[list["Loan"]] = relationship("Loan", back_populates="user")

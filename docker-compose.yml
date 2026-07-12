@@ -60,6 +60,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       APP_ENV: test
       ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
+      PY_COLORS: "1" # Fuerza colores ANSI
+      TERM: xterm-256color # Terminal con soporte de color
     depends_on:
       test_db:
         condition: service_healthy

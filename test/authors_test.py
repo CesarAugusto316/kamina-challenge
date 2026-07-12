@@ -50,7 +50,7 @@ def auth_headers(auth_token):
 @pytest.fixture()
 def author_payload():
     """Payload válido para crear autor"""
-    return {"name": "George Orwell", "birth_date": "1903-06-25T00:00:00Z"}
+    return {"name": "George Orwell", "birth_date": "1903-06-25"}
 
 
 # ============================================================

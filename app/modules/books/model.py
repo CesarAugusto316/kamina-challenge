@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -16,6 +17,11 @@ class Book(Base):
     __tablename__ = "books"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    serial_number: Mapped[uuid.UUID] = mapped_column(
+        default=uuid.uuid4,
+        index=True,
+        unique=True,
+    )
     title: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
     publication_year: Mapped[int | None] = mapped_column(nullable=True)
     author_id: Mapped[int] = mapped_column(
