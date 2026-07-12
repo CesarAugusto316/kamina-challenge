@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.core.db_config import Base, get_db_session
+from app.core.db_config import BaseModel, get_db_session
 from app.core.vars import DATABASE_URL
 from app.main import app
 
@@ -35,11 +35,11 @@ def client():
 @pytest.fixture(autouse=True)
 def setup_test_db():
     """Crea tablas antes de cada test y limpia después"""
-    Base.metadata.create_all(bind=engine)
+    BaseModel.metadata.create_all(bind=engine)
     yield
     # Limpieza: borra datos pero mantiene estructura
     with engine.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
+        for table in reversed(BaseModel.metadata.sorted_tables):
             conn.execute(table.delete())
 
 

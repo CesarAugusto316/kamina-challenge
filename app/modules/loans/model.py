@@ -6,7 +6,7 @@ from sqlalchemy import DateTime, ForeignKey, Integer
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ...core.db_config import Base
+from ...core.base_model import BaseModel
 
 # avoids circular imports
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ class LoanStatus(str, enum.Enum):
     OVERDUE = "overdue"
 
 
-class Loan(Base):
+class Loan(BaseModel):
     __tablename__ = "loans"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

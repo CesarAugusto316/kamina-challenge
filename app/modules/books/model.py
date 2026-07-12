@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ...core.db_config import Base
+from ...core.base_model import BaseModel
 
 # avoids circular imports
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from ..loans.model import Loan
 
 
-class Book(Base):
+class Book(BaseModel):
     __tablename__ = "books"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

@@ -4,14 +4,14 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Date, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ...core.db_config import Base
+from ...core.base_model import BaseModel
 
 # avoids circular imports
 if TYPE_CHECKING:
     from ..books.model import Book
 
 
-class Author(Base):
+class Author(BaseModel):
     __tablename__ = "authors"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
