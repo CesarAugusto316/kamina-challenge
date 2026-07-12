@@ -1,18 +1,25 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict
+
+# avoids circular imports
+if TYPE_CHECKING:
+    from ..books.schema import BookResponse
+    from ..users.schema import UserResponse
 
 
 class LoanCreate(BaseModel):
     book_id: int
-    user_id: int
+    # user_id: int
     days: int | None = None
 
 
 class LoanUpdate(BaseModel):
-    book_id: int | None = None
-    user_id: int | None = None
-    expected_return_date: datetime | None = None
+    days: int | None = None
+    # book_id: int | None = None
+    # user_id: int | None = None
+    # expected_return_date: datetime | None = None
 
 
 class LoanResponse(BaseModel):
@@ -28,42 +35,7 @@ class LoanResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# Nested schemas
-class UserBrief(BaseModel):
-    id: int
-    name: str
-    email: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class BookBrief(BaseModel):
-    id: int
-    title: str
-    publication_year: int | None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class AuthorBrief(BaseModel):
-    id: int
-    name: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class LoanDetailResponse(LoanResponse):
-    book: BookBrief
-    user: UserBrief
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-# Para search de libros con author
-class BookWithAuthor(BaseModel):
-    id: int
-    title: str
-    publication_year: int | None
-    author: AuthorBrief
-
+    book: "BookResponse"
+    user: "UserResponse"
     model_config = ConfigDict(from_attributes=True)

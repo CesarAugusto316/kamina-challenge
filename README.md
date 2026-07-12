@@ -1,4 +1,4 @@
-# 🧠 Kamina Technical Test: Library System
+# 🧠 Kamina Technical Challenge: Library System
 
 ## 📖 Description
 
@@ -59,12 +59,20 @@ docker compose --profile test up --abort-on-container-exit
 
 This API uses JWT for authentication.
 
-### 🔑 Get Token
+### 🔑 Create a User
 
 ```bash
-curl -X POST http://localhost:8000/users/login \
+curl -X POST http://localhost:8000/users/ \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "mindy2026"}'
+  -d '{ "name": "John Doe", "email": "user@example.com", "password": "mysecret"}'
+```
+
+### Login
+
+```bash
+curl -X POST http://localhost:8000/users/login/ \
+  -H "Content-Type: application/json" \
+  -d '{ "email": "user@example.com", "password": "mysecret"}'
 ```
 
 Response:
@@ -92,8 +100,8 @@ Response:
 
 | Method | Endpoint     | Auth | Description |
 | ------ | ------------ | ---- | ----------- |
-| POST   | /users/login | ❌   | Login       |
 | POST   | /users       | ❌   | Create user |
+| POST   | /users/login | ❌   | Login       |
 
 ---
 

@@ -1,5 +1,8 @@
 from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
+
+from ..authors.schema import AuthorResponse
 
 
 class BookBase(BaseModel):
@@ -25,32 +28,7 @@ class BookResponse(BookBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-# Nested schemas
-class AuthorBrief(BaseModel):
-    id: int
-    name: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class LoanBrief(BaseModel):
-    id: int
-    loan_date: datetime
-    expected_return_date: datetime
-    status: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class BookDetailResponse(BookResponse):
-    author: AuthorBrief
-    loans: list[LoanBrief] = []
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 # Search schema
 class BookSearchResponse(BookResponse):
-    author: AuthorBrief
-
+    author: "AuthorResponse"
     model_config = ConfigDict(from_attributes=True)

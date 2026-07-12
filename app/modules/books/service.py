@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..authors.model import Author
 from .model import Book
@@ -43,7 +43,7 @@ class BookService:
         limit: int = 100,
     ) -> list[Book]:
         """Buscar libros por título, nombre de autor o año"""
-        query = self.db.query(Book)
+        query = self.db.query(Book).options(joinedload(Book.author))
 
         if title:
             query = query.filter(Book.title.ilike(f"%{title}%"))

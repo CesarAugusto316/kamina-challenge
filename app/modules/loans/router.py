@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Depends, Query, status
+from typing import cast
+
+from fastapi import APIRouter, Depends, Query, Request, status
 
 from ...core.db_config import InjectedDB
+from ...core.types import RequestState
 from ..users.service import UserService
 from .schema import LoanCreate, LoanResponse, LoanUpdate
 from .service import LoanService
@@ -22,9 +25,10 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
     summary="Create a new loan",
 )
-def create_loan(loan_data: LoanCreate, db: InjectedDB):
+def create_loan(req: Request, loan_data: LoanCreate, db: InjectedDB):
     service = LoanService(db)
-    return service.create_loan(loan_data)
+    user = cast(RequestState, req.state).user
+    return service.create_loan(loan_data, user.id)
 
 
 @router.get(

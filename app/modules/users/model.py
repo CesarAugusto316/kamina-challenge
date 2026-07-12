@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ...core.db_config import Base
 
+# avoids circular imports
 if TYPE_CHECKING:
     from ..loans.model import Loan
 

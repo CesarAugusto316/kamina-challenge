@@ -7,7 +7,8 @@ from .service import AuthorService
 
 router = APIRouter(
     prefix="/authors",
-    tags=["Authors"],  # makes all routes private
+    tags=["Authors"],
+    # makes all routes private
     dependencies=[Depends(UserService.check_valid_credentials)],
 )
 

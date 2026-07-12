@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query, status
 
 from ...core.db_config import InjectedDB
 from ..users.service import UserService
-from .schema import BookCreate, BookResponse, BookUpdate
+from .schema import BookCreate, BookResponse, BookSearchResponse, BookUpdate
 from .service import BookService
 
 router = APIRouter(
@@ -29,7 +29,7 @@ def create_book(book_data: BookCreate, db: InjectedDB):
 
 @router.get(
     "/",
-    response_model=list[BookResponse],
+    response_model=list[BookSearchResponse],
     summary="List or search books",
     status_code=status.HTTP_200_OK,
     description=(

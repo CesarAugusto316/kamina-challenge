@@ -5,9 +5,12 @@ from fastapi import Depends, FastAPI
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from .vars import DATABASE_URL
+from .vars import APP_ENV, DATABASE_URL
 
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(
+    DATABASE_URL,
+    echo=(APP_ENV == "development"),
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -26,10 +29,17 @@ async def init_db(app: FastAPI):
     This replaces @app.on_event("startup") because is deprecated
     """
     try:
-        Base.metadata.create_all(engine)
+        # En desarrollo: create_all (rápido, sin migraciones)
+        # Crear tablas (solo en desarrollo)
+        if APP_ENV in ("development", "test"):
+            Base.metadata.create_all(bind=engine)
+            print("✓ Database tables created/verified")
+
+        # En producción: usar Alembic para migraciones
         yield
     finally:
-        # clean up items
+        # clean up
+        engine.dispose()
         pass
 
 

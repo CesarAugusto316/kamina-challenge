@@ -12,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 # -------------------------------------------
 @router.post(
     "/",
-    response_model=JWTResponse,
+    response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new user",
 )

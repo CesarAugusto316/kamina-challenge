@@ -1,6 +1,11 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, EmailStr
+
+# avoids circular imports
+if TYPE_CHECKING:
+    from ..loans.schema import LoanResponse
 
 
 # --- Base schemas ---
@@ -28,19 +33,8 @@ class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-# Forward reference para evitar import circular
-class LoanBrief(BaseModel):
-    id: int
-    loan_date: datetime
-    expected_return_date: datetime
-    actual_return_date: datetime | None
-    status: str
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class UserDetailResponse(UserResponse):
-    loans: list[LoanBrief] = []
+    loans: list["LoanResponse"] = []
 
     model_config = ConfigDict(from_attributes=True)
 

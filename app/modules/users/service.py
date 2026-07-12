@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
@@ -13,7 +13,14 @@ from app.core.db_config import InjectedDB
 
 from ...core.vars import JWT_ALGORITHM, JWT_SECRET
 from .model import User
-from .schema import JWTPayload, JWTRequest, JWTResponse, UserCreate, UserUpdate
+from .schema import (
+    JWTPayload,
+    JWTRequest,
+    JWTResponse,
+    UserCreate,
+    UserResponse,
+    UserUpdate,
+)
 
 InjectedAuthCredentials = Annotated[HTTPAuthorizationCredentials, Depends(HTTPBearer())]
 password_hasher = PasswordHash((Argon2Hasher(),))
@@ -25,7 +32,7 @@ class UserService:
 
     @staticmethod
     def check_valid_credentials(
-        credentials: InjectedAuthCredentials, db: InjectedDB
+        request: Request, credentials: InjectedAuthCredentials, db: InjectedDB
     ) -> User:
         """
         Check if the provided credentials are valid and return the corresponding user.
@@ -39,7 +46,9 @@ class UserService:
 
             jwt_payload = JWTPayload(**raw_payload)
             service = UserService(db)
-            return service.get_user(int(jwt_payload.sub))  # jwt_payload.sub=user.id
+            user = service.get_user(int(jwt_payload.sub))  # jwt_payload.sub=user.id
+            request.state.user = user
+            return user
 
         except (jwt.ExpiredSignatureError, InvalidTokenError):
             raise HTTPException(status_code=401, detail="JWT Expired or Invalid")
@@ -56,7 +65,7 @@ class UserService:
         encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
         return encoded_jwt
 
-    def create_user(self, user_data: UserCreate) -> JWTResponse:
+    def create_user(self, user_data: UserCreate) -> UserResponse:
         """Crear un nuevo usuario"""
         # Verificar si el email ya existe
         existing_user = (
@@ -72,8 +81,9 @@ class UserService:
         self.db.add(user)
         self.db.commit()
         self.db.refresh(user)
-        jwt = self._encode_jwt(user.id)
-        return JWTResponse(access_token=jwt)
+        return UserResponse(
+            id=user.id, name=user.name, email=user.email, created_at=user.created_at
+        )
 
     def login_user(self, credentials: JWTRequest) -> JWTResponse:
         user = self.db.query(User).filter(User.email == credentials.email).first()

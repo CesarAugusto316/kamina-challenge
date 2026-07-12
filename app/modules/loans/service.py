@@ -13,12 +13,8 @@ class LoanService:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_loan(self, loan_data: LoanCreate) -> Loan:
+    def create_loan(self, loan_data: LoanCreate, user_id: int) -> Loan:
         """Crear un nuevo préstamo"""
-        # Verificar que el usuario existe
-        user = self.db.query(User).filter(User.id == loan_data.user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
 
         # Verificar que el libro existe
         book = self.db.query(Book).filter(Book.id == loan_data.book_id).first()
@@ -38,9 +34,9 @@ class LoanService:
         days = loan_data.days if loan_data.days is not None else 14
         expected_return_date = datetime.now(UTC) + timedelta(days=days)
 
-        # FIX: Excluir 'days' del dump porque no es un campo del modelo SQLAlchemy
-        loan_data_dict = loan_data.model_dump(exclude={"days"})
-        loan = Loan(**loan_data_dict, expected_return_date=expected_return_date)
+        loan = Loan(
+            user_id=user_id, book_id=book.id, expected_return_date=expected_return_date
+        )
 
         self.db.add(loan)
         self.db.commit()
