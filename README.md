@@ -29,21 +29,24 @@ The `.env` file contains all required configuration (database, JWT, environment)
 
 ### 2. Start the Application
 
+Start app containers
+
 ```bash
-# Start containers
-docker compose up -d
-
-# Stop containers
-docker compose down
-
-# Rebuild containers
-docker compose build --no-cache
+docker compose --profile app up -d
 ```
 
-## 🧪 Running Integration Tests
+Stop app containers
 
 ```bash
-docker compose --profile test up
+docker compose --profile app down
+```
+
+### 3. Running Integration Tests
+
+Start test containers, run integration tests, then stop test containers
+
+```bash
+docker compose --profile test up --abort-on-container-exit
 ```
 
 ✅ API: http://localhost:8000
